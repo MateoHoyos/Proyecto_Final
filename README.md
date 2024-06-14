@@ -1,13 +1,13 @@
 # KAMIKAZE EL PROYECTO RC SUICIDA
 ## Proyecto Final Electrónica Digital III
 
-*Sebastián López Dorado
-Mateo Hoyos Mesa
-Diego Andrés Mutis Muñoz*
+*Sebastián López Dorado  
+Mateo Hoyos Mesa  
+Diego Andrés Mutis Muñoz*  
 
-Ingeniería Electrónica Y Telecomunicaciones
-Facultad De Ingeniería
-2024-1
+Ingeniería Electrónica Y Telecomunicaciones  
+Facultad De Ingeniería  
+2024-1  
 
 ------------
 
