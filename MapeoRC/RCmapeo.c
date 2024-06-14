@@ -1,3 +1,8 @@
+/**
+ * @file main.c
+ * @brief Control PWM y PID para un sistema de dirección y elevación.
+ */
+
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
@@ -5,19 +10,24 @@
 #include "control_pid.h"
 
 // Pines al que se conecta la señal PWM
-#define PWM_Cn1 0   //Direccion
-#define PWM_Cn2 1   //Elevacion
-#define PWM_Cn4 2   //Alas
-#define PWM_Cn6 3   //Switch control
+#define PWM_Cn1 0   ///< Dirección
+#define PWM_Cn2 1   ///< Elevación
+#define PWM_Cn4 2   ///< Alas
+#define PWM_Cn6 3   ///< Switch control
 
 // Pines al que se conecta la señal PWM saliente
-#define PWM_OUT1 4 //Direccion d
-#define PWM_OUT2 5  //direccion t
-#define PWM_OUT3 6  //Elevacio
-#define PWM_OUT4 7  //Ala derecha
-#define PWM_OUT5 8  //Ala Izquierda
+#define PWM_OUT1 4  ///< Dirección d
+#define PWM_OUT2 5  ///< Dirección t
+#define PWM_OUT3 6  ///< Elevación
+#define PWM_OUT4 7  ///< Ala derecha
+#define PWM_OUT5 8  ///< Ala izquierda
 
-// Función para medir el ciclo de trabajo
+/**
+ * @brief Mide el ciclo de trabajo de la señal PWM en el pin especificado.
+ * 
+ * @param gpio Pin GPIO al cual se conecta la señal PWM.
+ * @return Ciclo de trabajo en porcentaje.
+ */
 float measure_duty_cycle(uint gpio) {
     absolute_time_t t1, t2, t3, t4;
     uint32_t high_time, low_time;
@@ -50,27 +60,31 @@ float measure_duty_cycle(uint gpio) {
 
     return duty_cycle;
 }
+
+/**
+ * @brief Configura el pin GPIO para generar una señal PWM con el ciclo de trabajo especificado.
+ * 
+ * @param gpio Pin GPIO al cual se generará la señal PWM.
+ * @param duty_cycle Ciclo de trabajo en porcentaje.
+ */
 void setup_pwm(uint gpio, float duty_cycle) {
-    switch (gpio)
-    {
+    switch (gpio) {
         case 7:
-        if(duty_cycle<7.0){
-        duty_cycle=7.0;
-        }
-    else if(duty_cycle>10.5){
-        duty_cycle=10.5;
-        }
-    case 8:
-        if(duty_cycle<6.0){
-        duty_cycle=6.0;
-        }
-    else if(duty_cycle>9.5){
-        duty_cycle=9.5;
-        }
-        break;
-    
-    default:
-        break;
+            if(duty_cycle < 7.0) {
+                duty_cycle = 7.0;
+            } else if(duty_cycle > 10.5) {
+                duty_cycle = 10.5;
+            }
+            break;
+        case 8:
+            if(duty_cycle < 6.0) {
+                duty_cycle = 6.0;
+            } else if(duty_cycle > 9.5) {
+                duty_cycle = 9.5;
+            }
+            break;
+        default:
+            break;
     }
     
     // Configura el pin PWM
@@ -90,17 +104,16 @@ void setup_pwm(uint gpio, float duty_cycle) {
     // Habilita el PWM
     pwm_set_enabled(slice_num, true);
 }
-//Canal 1 es para la dirreccion limite minimo 5.5% maMaximo de 11.5% cicle duty centro estable 9%
-//Canal 2 elevacionelevacion maxima 11.5% y minima de 5.5%
-//Canal e Aceleracion del motor no se procesara
-//Canal 4 inclinacion en 0 tenemos que es 8.3% ciclo de dureza derecha 11.5% e izquierda 5.5%
-//Canal 6 Se utiliza para el control automatico en 1 eje
 
-
+/**
+ * @brief Función principal. Configura los pines, inicializa los periféricos y ejecuta el bucle principal.
+ * 
+ * @return Código de estado del programa.
+ */
 int main() {
     stdio_init_all();
     
-    // Configura el pin como entrada
+    // Configura los pines como entrada
     gpio_init(PWM_Cn1);
     gpio_set_dir(PWM_Cn1, GPIO_IN);
     gpio_init(PWM_Cn2);
@@ -109,36 +122,37 @@ int main() {
     gpio_set_dir(PWM_Cn4, GPIO_IN);
     gpio_init(PWM_Cn6);
     gpio_set_dir(PWM_Cn6, GPIO_IN);
+    
+    // Configura los pines de salida PWM
     gpio_set_function(PWM_OUT1, GPIO_FUNC_PWM);
     gpio_set_function(PWM_OUT2, GPIO_FUNC_PWM);
     gpio_set_function(PWM_OUT3, GPIO_FUNC_PWM);
     gpio_set_function(PWM_OUT4, GPIO_FUNC_PWM);
     gpio_set_function(PWM_OUT5, GPIO_FUNC_PWM);
-    //control
-    stdio_init_all();
+
+    // Inicializa periféricos adicionales
     i2c_init_gy();
     gy85_init();
-    //pwm_init_s();
-
+    
     KalmanFilter kalman_filter;
     kalman_init(&kalman_filter, 0.01, 0.1, 0); // Inicializa el filtro de Kalman
 
     PIDController pid_controller;
     pid_controller_init(&pid_controller, 1.0, 0.1, 0.05, 0); // Inicializa el controlador PID
 
-    // float min_angle = 90; // Ángulo mínimo permitido para el servo
-    // float max_angle = 110; // Ángulo máximo permitido para el servo
+    // Bucle principal
     while (1) {
         float duty_cycle1 = measure_duty_cycle(PWM_Cn1);
         float duty_cycle2 = measure_duty_cycle(PWM_Cn2);
         float duty_cycle3 = measure_duty_cycle(PWM_Cn4);
         float duty_cycle4 = measure_duty_cycle(PWM_Cn6);
-        duty_cycle3 =(8.3+(8.3-duty_cycle3));
+        duty_cycle3 = (8.3 + (8.3 - duty_cycle3));
         printf("Ciclo de trabajo: %.2f\n", duty_cycle1);
-        setup_pwm(PWM_OUT1, duty_cycle1-0.6);
-        setup_pwm(PWM_OUT2, (8.3+(8.3-duty_cycle1)));
-        setup_pwm(PWM_OUT3, duty_cycle2+1.0);
-        if(duty_cycle4<9.0 && (duty_cycle3<8.5 && duty_cycle3>8.1)){
+        setup_pwm(PWM_OUT1, duty_cycle1 - 0.6);
+        setup_pwm(PWM_OUT2, (8.3 + (8.3 - duty_cycle1)));
+        setup_pwm(PWM_OUT3, duty_cycle2 + 1.0);
+
+        if (duty_cycle4 < 9.0 && (duty_cycle3 < 8.5 && duty_cycle3 > 8.1)) {
             int16_t accX, accY, accZ;
             float pitch, filtered_pitch, control_signal;
 
@@ -146,25 +160,23 @@ int main() {
             calculate_pitch(accX, accY, accZ, &pitch);
 
             // Aplica el filtro de Kalman al ángulo de pitch
-            filtered_pitch = kalman_update(&kalman_filter, pitch+3.0);
+            filtered_pitch = kalman_update(&kalman_filter, pitch + 3.0);
 
             // Calcula la señal de control usando el controlador PID
             control_signal = pid_controller_update(&pid_controller, filtered_pitch, 0.1); // Suponiendo dt = 0.1s
 
             // Ajusta el ángulo del servo motor basado en la señal de control con límites personalizados
-            //set_servo_angle(95, min_angle, max_angle);
-            setup_pwm(PWM_OUT4,(control_signal/10.0)+9.0);
-            setup_pwm(PWM_OUT5,(control_signal/10.0)+7.5);
-
+            setup_pwm(PWM_OUT4, (control_signal / 10.0) + 9.0);
+            setup_pwm(PWM_OUT5, (control_signal / 10.0) + 7.5);
 
             printf("Raw Pitch: %.2f, Filtered Pitch: %.2f, Control Signal: %.2f\n", pitch, filtered_pitch, control_signal);
-        }else{
-            
-            setup_pwm(PWM_OUT4, duty_cycle3+0.5);
-            setup_pwm(PWM_OUT5, duty_cycle3-0.9);
+        } else {
+            setup_pwm(PWM_OUT4, duty_cycle3 + 0.5);
+            setup_pwm(PWM_OUT5, duty_cycle3 - 0.9);
         }
         
-        sleep_ms(80);  // Espera 1 segundo antes de medir nuevamente
+        sleep_ms(80);  // Espera antes de medir nuevamente
     }
-}
 
+    return 0;
+}
