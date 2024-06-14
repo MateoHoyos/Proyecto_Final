@@ -1,5 +1,5 @@
 # KAMIKAZE EL PROYECTO RC SUICIDA
-**Proyecto Final Electrónica Digital III**
+## Proyecto Final Electrónica Digital III
 
 *Sebastián López Dorado
 Mateo Hoyos Mesa
