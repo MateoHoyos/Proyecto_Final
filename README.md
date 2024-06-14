@@ -1,8 +1,6 @@
 # KAMIKAZE EL PROYECTO RC SUICIDA
 **Proyecto Final Electrónica Digital III**
 
-[TOC]
-
 *Sebastián López Dorado
 Mateo Hoyos Mesa
 Diego Andrés Mutis Muñoz*
@@ -31,8 +29,7 @@ Facultad De Ingeniería
 #### Diagrama de bloques del HW
 ![](https://raw.githubusercontent.com/MateoHoyos/Proyecto_Final/main/Evidencia/diagrama.png)
 
-![](https://raw.githubusercontent.com/MateoHoyos/Proyecto_Final/main/Maqueta
-/rc-model-ucak-yapimi-making-rc-airplane-Servo-Motor-installation.jpg)
+![](https://raw.githubusercontent.com/MateoHoyos/Proyecto_Final/main/Maqueta/rc-model-ucak-yapimi-making-rc-airplane-Servo-Motor-installation.jpg)
 
 ------------
 
